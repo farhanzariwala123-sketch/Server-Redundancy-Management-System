@@ -1,0 +1,20 @@
+@startuml
+actor Admin
+participant "Server 1" as S1
+participant "Server 2" as S2
+participant "Server 3" as S3
+participant "MonitorMain\n<<Singleton>>" as Monitor
+participant "EventLogger\n<<Observer>>" as EL
+Admin -> Monitor: getInstance(9000)
+Admin -> S1: start(id=1, port=9001)
+Admin -> S2: start(id=2, port=9002)
+Admin -> S3: start(id=3, port=9003)
+S1 -> Monitor: HEARTBEAT(serverId=1, port=9001)
+S2 -> Monitor: HEARTBEAT(serverId=2, port=9002)
+S3 -> Monitor: HEARTBEAT(serverId=3, port=9003)
+Monitor -> Monitor: electPrimary() -> id=1
+Monitor -> S1: PROMOTE
+S1 --> Monitor: RESPONSE(PROMOTED)
+Monitor -> EL: update("NEW_PRIMARY:1")
+EL -> EL: log event
+@enduml

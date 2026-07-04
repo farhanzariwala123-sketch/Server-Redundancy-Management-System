@@ -1,0 +1,19 @@
+@startuml
+actor Admin
+participant "Server(id=1)" as S1
+participant "Server(id=2)" as S2
+participant "Server(id=3)" as S3
+participant Monitor
+Admin -> S1: start(id=1, port=5001)
+Admin -> S2: start(id=2, port=5002)
+Admin -> S3: start(id=3, port=5003)
+S1 -> Monitor: HEARTBEAT(serverId=1, port=5001)
+S2 -> Monitor: HEARTBEAT(serverId=2, port=5002)
+S3 -> Monitor: HEARTBEAT(serverId=3, port=5003)
+Monitor -> Monitor: update lastHeartbeat maps
+Monitor -> Monitor: electPrimary()  'choose lowest ID among alive
+Monitor -> S1: PROMOTE
+S1 -> S1: set isPrimary = true
+S1 --> Monitor: RESPONSE(PROMOTED)
+Monitor -> Monitor: log "Elected new primary: 1"
+@enduml

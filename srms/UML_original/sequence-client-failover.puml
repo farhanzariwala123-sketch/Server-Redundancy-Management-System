@@ -1,0 +1,21 @@
+@startuml
+actor Client
+participant Monitor
+participant "Server 1 (Primary)" as P
+participant "Server 2 (Backup)" as B
+Client -> Monitor: GET_PRIMARY
+Monitor --> Client: PRIMARY_INFO(serverId=1, port=9001)
+Client -> P: CONNECT + PROCESS(job-42)
+P -> P: processRequest()
+P --> Client: RESPONSE(OK ...)
+P -> Monitor: (no more HEARTBEAT)
+Monitor -> Monitor: failureDetectorLoop detects timeout
+Monitor -> Monitor: electPrimary() -> choose id=2
+Monitor -> B: PROMOTE
+B -> B: set isPrimary = true
+Client -> Monitor: GET_PRIMARY
+Monitor --> Client: PRIMARY_INFO(serverId=2, port=9002)
+Client -> B: CONNECT + PROCESS(job-43)
+B -> B: processRequest()
+B --> Client: RESPONSE(OK ...)
+@enduml

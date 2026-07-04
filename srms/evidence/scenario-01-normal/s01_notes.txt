@@ -1,0 +1,11 @@
+Tstart
+[Sun Feb 15 09:30:30 PST 2026] MON: Starting Monitor on port 9000
+
+Telect
+[Sun Feb 15 09:31:04 PST 2026] MON: Elected new primary: 1
+
+Tprocess
+[Sun Feb 15 09:33:57 PST 2026] Srv-1: PROCESS request received payload=job-normal-1
+[Sun Feb 15 09:33:57 PST 2026] Srv-1: Processed request, replied
+
+Conclusion: Primary elected successfully and client request processed without errors.

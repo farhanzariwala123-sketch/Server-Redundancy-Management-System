@@ -1,0 +1,14 @@
+@startuml
+node "Host localhost" {
+  component "MonitorMain\n(port 9000)" as Monitor
+  component "Server 1\n(port 9001)" as S1
+  component "Server 2\n(port 9002)" as S2
+  component "Server 3\n(port 9003)" as S3
+  component "Client" as Client
+}
+S1 --> Monitor : HEARTBEAT
+S2 --> Monitor : HEARTBEAT
+S3 --> Monitor : HEARTBEAT
+Client --> Monitor : GET_PRIMARY
+Client --> S1 : PROCESS (primary)
+@enduml

@@ -1,0 +1,22 @@
+@startuml
+actor Client
+participant "MonitorMain\n<<Singleton>>" as Monitor
+participant "Server 1\n(Primary)" as P
+participant "Server 2\n(Backup)" as B
+participant "EventLogger\n<<Observer>>" as EL
+Client -> Monitor: GET_PRIMARY
+Monitor --> Client: PRIMARY_INFO(serverId=1, port=9001)
+Client -> P: PROCESS(job-42)
+P --> Client: RESPONSE(OK ...)
+P -> Monitor: (no more HEARTBEAT)
+Monitor -> Monitor: failureDetectorLoop detects timeout
+Monitor -> Monitor: electPrimary() -> id=2
+Monitor -> B: PROMOTE
+B -> B: isPrimary = true
+Monitor -> EL: update("NEW_PRIMARY:2")
+EL -> EL: log event
+Client -> Monitor: GET_PRIMARY
+Monitor --> Client: PRIMARY_INFO(serverId=2, port=9002)
+Client -> B: PROCESS(job-43)
+B --> Client: RESPONSE(OK ...)
+@enduml

@@ -1,0 +1,74 @@
+@startuml
+interface IMessageSerializer {
+  +serialize(m: Message): String
+  +deserialize(s: String): Message
+}
+class Message {
+  +type: String
+  +serverId: int
+  +port: int
+  +timestamp: long
+  +payload: String
+  +Message()
+  +Message(type: String)
+}
+abstract class ServerProcess {
+  -id: int
+  -port: int
+  -monitorHost: String
+  -monitorPort: int
+  -running: boolean
+  -isPrimary: boolean
+  -logFile: File
+  +ServerProcess(id:int,port:int,monitorHost:String,monitorPort:int)
+  +start(): void
+  +heartbeatLoop(): void
+  +sendHeartbeat(): void
+  +handleConnection(Socket): void
+  +log(String): void
+}
+class PrimaryServer {
+  +processRequest(m: Message): Message
+  +replicateState(update: String): void
+}
+class BackupServer {
+  +applyReplication(update: String): void
+  +promoteToPrimary(): void
+}
+class MonitorMain {
+  -port: int
+  -lastHeartbeat: Map<int,long>
+  -serverPort: Map<int,int>
+  -primaryId: Integer
+  -heartbeatTimeoutMs: long
+  +start(): void
+  +handleConnection(Socket): void
+  +failureDetectorLoop(): void
+  +electPrimary(): void
+  +sendPromote(serverId:int): void
+  +getPrimary(): ServerInfo
+}
+class ClientMain {
+  +main(args: String[]): void
+  +queryMonitor(): ServerInfo
+  +connectPrimary(host:String,port:int): void
+}
+class Serializer {
+  +serialize(m: Message): String
+  +deserialize(s: String): Message
+}
+class ServerInfo {
+  +id: int
+  +host: String
+  +port: int
+  +lastHeartbeat: long
+}
+ServerProcess <|-- PrimaryServer
+ServerProcess <|-- BackupServer
+ServerProcess ..> Serializer : uses
+ClientMain ..> MonitorMain : query
+MonitorMain o-- ServerInfo : tracks
+MonitorMain ..> Serializer : uses
+MonitorMain ..> ServerProcess : send PROMOTE
+MonitorMain ..> PrimaryServer : logs
+@enduml

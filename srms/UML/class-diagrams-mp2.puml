@@ -1,0 +1,62 @@
+@startuml
+interface Observer {
+  +update(event: String): void
+}
+class EventLogger {
+  +update(event: String): void
+}
+abstract class ServerType {
+  #id: int
+  #port: int
+  #monitorHost: String
+  #monitorPort: int
+  +ServerType(id,port,monitorHost,monitorPort)
+  +{abstract} start(): void
+}
+class ServerProcess {
+  -running: boolean
+  -isPrimary: boolean
+  -logFile: File
+  +start(): void
+  +heartbeatLoop(): void
+  +sendHeartbeat(): void
+  +handleConnection(Socket): void
+}
+class MonitorMain {
+  -{static} instance: MonitorMain
+  -port: int
+  -lastHeartbeat: Map
+  -serverPort: Map
+  -primaryId: Integer
+  -observers: List<Observer>
+  -MonitorMain(port: int)
+  +{static} getInstance(port: int): MonitorMain
+  +addObserver(o: Observer): void
+  -notifyObservers(event: String): void
+  +start(): void
+  +electPrimary(): void
+  +sendPromote(serverId: int): void
+}
+class ClientMain {
+  +main(args: String[]): void
+}
+class Message {
+  +type: String
+  +serverId: int
+  +port: int
+  +timestamp: long
+  +payload: String
+}
+class Serializer {
+  +serialize(m: Message): String
+  +deserialize(s: String): Message
+}
+ServerProcess --|> ServerType
+EventLogger ..|> Observer
+MonitorMain --> Observer : notifies
+MonitorMain o-- EventLogger
+ServerProcess ..> Serializer : uses
+MonitorMain ..> Serializer : uses
+ClientMain ..> MonitorMain : GET_PRIMARY
+MonitorMain ..> ServerProcess : PROMOTE
+@enduml
